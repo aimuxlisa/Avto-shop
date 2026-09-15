@@ -1,0 +1,17 @@
+# Секреты
+.env
+
+# Файлы с отзывами
+feedback.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/

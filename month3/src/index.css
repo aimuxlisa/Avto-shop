@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: #050914;
+    color: #f8fafc;
+    overflow-x: hidden;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Exact Background Neon Ambience matching the mockup */
+  .bg-autohub-ambient {
+    background-color: #050914;
+    background-image: 
+      radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.18) 0%, rgba(37, 99, 235, 0.08) 35%, transparent 70%),
+      radial-gradient(circle at 10% 30%, rgba(37, 99, 235, 0.12) 0%, transparent 40%),
+      radial-gradient(circle at 90% 60%, rgba(56, 189, 248, 0.14) 0%, transparent 45%),
+      radial-gradient(circle at 50% 90%, rgba(30, 58, 138, 0.2) 0%, transparent 60%);
+  }
+
+  /* Glassmorphism Cards */
+  .glass-card {
+    background: rgba(13, 22, 44, 0.65);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    box-shadow: 0 10px 35px 0 rgba(0, 0, 0, 0.45);
+  }
+
+  .glass-card-hover {
+    background: rgba(13, 22, 44, 0.65);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    box-shadow: 0 10px 35px 0 rgba(0, 0, 0, 0.45);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .glass-card-hover:hover {
+    background: rgba(18, 30, 58, 0.8);
+    border-color: rgba(56, 189, 248, 0.5);
+    box-shadow: 0 12px 40px -5px rgba(56, 189, 248, 0.3), 0 0 20px rgba(56, 189, 248, 0.2);
+    transform: translateY(-4px);
+  }
+
+  .glass-input {
+    background: rgba(10, 18, 36, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    transition: all 0.2s ease-in-out;
+  }
+
+  .glass-input:focus {
+    outline: none;
+    border-color: #38bdf8;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.35);
+  }
+
+  /* Neon Glow Button */
+  .btn-neon {
+    background: linear-gradient(135deg, #2563EB 0%, #38BDF8 100%);
+    box-shadow: 0 0 25px -3px rgba(56, 189, 248, 0.6), 0 0 12px -2px rgba(37, 99, 235, 0.4);
+    transition: all 0.25s ease-in-out;
+  }
+
+  .btn-neon:hover {
+    box-shadow: 0 0 35px 3px rgba(56, 189, 248, 0.85), 0 0 20px 2px rgba(37, 99, 235, 0.7);
+    transform: translateY(-1px) scale(1.02);
+  }
+
+  .btn-neon:active {
+    transform: translateY(1px) scale(0.98);
+  }
+
+  /* Outline Glow Button */
+  .btn-outline-neon {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
+    transition: all 0.25s ease-in-out;
+  }
+
+  .btn-outline-neon:hover {
+    border-color: #38bdf8;
+    background: rgba(56, 189, 248, 0.12);
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+    transform: translateY(-1px);
+  }
+
+  /* Futuristic Glowing Podium */
+  .podium-glow-layer {
+    background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.45) 0%, rgba(37, 99, 235, 0.25) 40%, rgba(5, 9, 20, 0) 75%);
+  }
+
+  .podium-ring-outer {
+    border: 2px solid rgba(56, 189, 248, 0.85);
+    box-shadow: 0 0 35px rgba(56, 189, 248, 0.8), inset 0 0 25px rgba(56, 189, 248, 0.5);
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #050914;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 4px;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #38bdf8;
+  }
+}
