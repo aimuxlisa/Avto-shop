@@ -1,0 +1,11 @@
+{
+  "bot_token": "9261916843:AAHJILcWGpks6j6dhiEhdM-vZSVjWC-8SgE",
+  "bot_username": "ragm_bot",
+  "admin_chat_ids": [
+    916589524
+  ],
+  "gemini_api_key": "",
+  "academy_phone": "+998 (71) 200-88-00",
+  "web_url": "http://localhost:8080",
+  "webapp_url": "https://593cada919d56e.lhr.life/webapp"
+}

@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>IT ACADEMY | Telegram Mini App</title>
+  
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-main: #08101d;
+      --bg-surface: #0e192c;
+      --bg-surface-elevated: #142239;
+      --bg-card: #15243d;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(16, 185, 129, 0.4);
+      --text-white: #ffffff;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.25);
+      --cyan: #06b6d4;
+      --amber: #f59e0b;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-main);
+      color: var(--text-white);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      padding-bottom: 74px; /* Space for bottom nav */
+      user-select: none;
+    }
+
+    /* Ambient Background Glow */
+    .ambient-glow {
+      position: fixed;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 280px;
+      height: 280px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.22) 0%, rgba(6, 182, 212, 0.12) 40%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(40px);
+    }
+
+    /* Header Bar */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(8, 16, 29, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-badge-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #10b981, #06b6d4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1rem;
+      color: #05070a;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+    }
+
+    .brand-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .brand-pro {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: var(--amber);
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 2px 5px;
+      border-radius: 4px;
+      margin-left: 4px;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.9); }
+    }
+
+    /* Content Area */
+    .content-area {
+      position: relative;
+      z-index: 10;
+      padding: 16px;
+      flex: 1;
+    }
+
+    /* Tab Page Views */
+    .tab-page {
+      display: none;
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+
+    .tab-page.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Hero Banner */
+    .hero-banner {
+      background: linear-gradient(135deg, rgba(14, 25, 44, 0.9), rgba(21, 36, 61, 0.95));
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 25px -8px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-banner::after {
+      content: '';
+      position: absolute;
+      right: -20px;
+      bottom: -20px;
+      width: 100px;
+      height: 100px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--emerald);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .hero-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 8px;
+    }
+
+    .hero-desc {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.45;
+      margin-bottom: 14px;
+    }
+
+    .hero-stats-row {
+      display: flex;
+      gap: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .stat-mini-item {
+      flex: 1;
+    }
+
+    .stat-mini-num {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .stat-mini-lbl {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    /* Course Cards */
+    .courses-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .course-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .course-card:active {
+      transform: scale(0.985);
+      border-color: rgba(16, 185, 129, 0.5);
+    }
+
+    .course-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .course-icon-badge {
+      font-size: 1.4rem;
+      background: var(--bg-surface-elevated);
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .course-duration-pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .course-title {
+      font-size: 1rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .course-desc {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+
+    .course-stack-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 14px;
+    }
+
+    .stack-chip {
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+      color: var(--cyan);
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .course-bottom-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .course-price-val {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--emerald);
+    }
+
+    .course-price-sub {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    .btn-action-sm {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #05070a;
+      border: none;
+      font-weight: 700;
+      font-size: 0.78rem;
+      padding: 7px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Modal / Bottom Sheet */
+    .modal-sheet {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: flex-end;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-sheet.open {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-content-box {
+      width: 100%;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-subtle);
+      border-radius: 24px 24px 0 0;
+      padding: 20px 18px 30px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+      transform: translateY(100%);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-sheet.open .modal-content-box {
+      transform: translateY(0);
+    }
+
+    .sheet-handle {
+      width: 38px;
+      height: 4px;
+      background: var(--text-muted);
+      border-radius: 2px;
+      margin: 0 auto 16px;
+      opacity: 0.6;
+    }
+
+    /* Quiz Tab */
+    .quiz-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+    }
+
+    .quiz-progress-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .progress-step-pill {
+      flex: 1;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      transition: background 0.3s;
+    }
+
+    .progress-step-pill.active {
+      background: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald);
+    }
+
+    .quiz-q-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: 14px;
+      line-height: 1.35;
+    }
+
+    .quiz-btn-option {
+      width: 100%;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      color: var(--text-white);
+      text-align: left;
+      font-size: 0.84rem;
+      font-weight: 600;
+      margin-bottom: 9px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .quiz-btn-option:active {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--emerald);
+      transform: scale(0.98);
+    }
+
+    /* Calculator Tab */
+    .calc-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      margin-bottom: 7px;
+      display: block;
+    }
+
+    .form-select, .form-input {
+      width: 100%;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-white);
+      padding: 11px 13px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .form-select:focus, .form-input:focus {
+      border-color: var(--emerald);
+    }
+
+    .calc-results-box {
+      background: var(--bg-card);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-top: 18px;
+    }
+
+    .calc-res-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 9px;
+      font-size: 0.82rem;
+    }
+
+    .calc-res-highlight {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--emerald);
+    }
+
+    /* AI Chat Tab */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 170px);
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-bottom: 10px;
+    }
+
+    .chat-bubble {
+      max-width: 85%;
+      padding: 11px 14px;
+      border-radius: 16px;
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .bubble-bot {
+      align-self: flex-start;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-bottom-left-radius: 4px;
+    }
+
+    .bubble-user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #05070a;
+      font-weight: 600;
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-chips-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 8px 0;
+      margin-bottom: 8px;
+      scrollbar-width: none;
+    }
+
+    .chat-chips-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chat-chip {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: 0.74rem;
+      padding: 6px 11px;
+      border-radius: 14px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .chat-input-bar {
+      display: flex;
+      gap: 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      padding: 6px 8px 6px 14px;
+    }
+
+    .chat-input-field {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 0.86rem;
+      font-family: inherit;
+    }
+
+    .chat-send-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--emerald);
+      border: none;
+      color: #05070a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    /* Campus Tab */
+    .campus-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    .coworking-specs-list {
+      list-style: none;
+      margin: 14px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .coworking-specs-list li {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: rgba(8, 16, 29, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 4px (8px + env(safe-area-inset-bottom));
+    }
+
+    .nav-tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 4px 0;
+      cursor: pointer;
+      transition: color 0.15s ease;
+    }
+
+    .nav-tab-btn.active {
+      color: var(--emerald);
+    }
+
+    .nav-tab-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2.2;
+    }
+
+    /* Primary CTA Button */
+    .btn-cta-full {
+      width: 100%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #05070a;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 0.94rem;
+      font-weight: 800;
+      padding: 13px;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .btn-cta-full:active {
+      transform: scale(0.985);
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient Space Glow -->
+  <div class="ambient-glow"></div>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand-group">
+      <div class="brand-badge-box">IT</div>
+      <div>
+        <div class="brand-title">IT ACADEMY <span class="brand-pro">PRO</span></div>
+        <div style="font-size: 0.66rem; color: var(--text-muted);">Tashkent Campus & Hub</div>
+      </div>
+    </div>
+
+    <div class="user-pill" id="user-display-pill">
+      <span class="status-dot"></span>
+      <span id="tg-user-name">Студент</span>
+    </div>
+  </header>
+
+  <!-- Main Content Shell -->
+  <main class="content-area">
+
+    <!-- ======================================================================
+         TAB 1: COURSES CATALOG
+         ====================================================================== -->
+    <div id="tab-courses" class="tab-page active">
+      <!-- Hero Banner -->
+      <div class="hero-banner">
+        <div class="hero-tag">⚡ Резидент IT-Park • 24/7 Коворкинг</div>
+        <h1 class="hero-title">Освойте профессию в IT с нуля до оффера</h1>
+        <p class="hero-desc">70% реальной практики, Senior-менторы из BigTech и гарантированное трудоустройство в партнерские компании.</p>
+        <div class="hero-stats-row">
+          <div class="stat-mini-item">
+            <div class="stat-mini-num">8</div>
+            <div class="stat-mini-lbl">Курсов</div>
+          </div>
+          <div class="stat-mini-item">
+            <div class="stat-mini-num">94%</div>
+            <div class="stat-mini-lbl">Офферов</div>
+          </div>
+          <div class="stat-mini-item">
+            <div class="stat-mini-num">24/7</div>
+            <div class="stat-mini-lbl">Коворкинг</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="font-size: 0.84rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">
+        Каталог направлений (8 программ)
+      </div>
+
+      <!-- Courses List Container -->
+      <div class="courses-grid" id="courses-list-container">
+        <!-- Rendered Dynamically by JS -->
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         TAB 2: ORIENTATION QUIZ
+         ====================================================================== -->
+    <div id="tab-quiz" class="tab-page">
+      <div class="quiz-card">
+        <div class="quiz-progress-bar">
+          <div class="progress-step-pill active" id="quiz-bar-1"></div>
+          <div class="progress-step-pill" id="quiz-bar-2"></div>
+          <div class="progress-step-pill" id="quiz-bar-3"></div>
+        </div>
+
+        <div id="quiz-step-box">
+          <div style="font-size: 0.74rem; font-weight: 700; color: var(--emerald); text-transform: uppercase; margin-bottom: 6px;" id="quiz-step-label">Шаг 1 из 3</div>
+          <h2 class="quiz-q-title" id="quiz-question-title">Что вам ближе по духу и интересам?</h2>
+
+          <div id="quiz-options-wrapper">
+            <!-- Options dynamically loaded -->
+          </div>
+        </div>
+
+        <!-- Quiz Result Screen (Hidden by default) -->
+        <div id="quiz-result-box" style="display: none; text-align: center; padding: 10px 0;">
+          <div style="font-size: 2.2rem; margin-bottom: 8px;" id="quiz-res-icon">🚀</div>
+          <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--emerald); font-weight: 700; letter-spacing: 0.08em; margin-bottom: 4px;">Ваша идеальная профессия:</div>
+          <h3 style="font-size: 1.35rem; font-weight: 800; margin-bottom: 10px;" id="quiz-res-title">Frontend Разработка</h3>
+          <p style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px;" id="quiz-res-desc">
+            Идеальный баланс логики, визуала и высоких зарплат. Высокий спрос в Ташкенте и на удаленке.
+          </p>
+
+          <button class="btn-cta-full" id="quiz-cta-enroll-btn">
+            🎁 Записаться на бесплатный урок
+          </button>
+          <button class="btn-cta-full" id="quiz-restart-btn" style="background: var(--bg-surface-elevated); color: #fff; margin-top: 8px;">
+            Пройти тест заново
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         TAB 3: INSTALLMENT CALCULATOR
+         ====================================================================== -->
+    <div id="tab-calc" class="tab-page">
+      <div class="calc-card">
+        <h2 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 6px;">Калькулятор стоимости и рассрочки</h2>
+        <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 18px;">Рассчитайте ежемесячный платёж и выгоду при оплате обучения.</p>
+
+        <div class="form-group">
+          <label class="form-label">1. Выберите курс</label>
+          <select id="calc-course-select" class="form-select">
+            <!-- Populated by JS -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">2. Схема оплаты</label>
+          <select id="calc-scheme-select" class="form-select">
+            <option value="monthly">Помесячная оплата (без процентов)</option>
+            <option value="full">Единовременная оплата (Скидка 15%)</option>
+            <option value="6">Банковская рассрочка на 6 месяцев</option>
+            <option value="12" selected>Банковская рассрочка на 12 месяцев</option>
+          </select>
+        </div>
+
+        <div class="calc-results-box">
+          <div class="calc-res-row">
+            <span style="color: var(--text-secondary);">Срок обучения:</span>
+            <strong id="calc-res-duration">7 месяцев</strong>
+          </div>
+          <div class="calc-res-row">
+            <span style="color: var(--text-secondary);">Полная стоимость:</span>
+            <span id="calc-res-full">12 600 000 сум</span>
+          </div>
+          <div class="calc-res-row">
+            <span style="color: var(--text-secondary);">Ваша скидка (-15%):</span>
+            <strong style="color: var(--amber);" id="calc-res-discount">0 сум</strong>
+          </div>
+          <hr style="border: none; border-top: 1px solid var(--border-subtle); margin: 10px 0;">
+          <div class="calc-res-row" style="align-items: baseline;">
+            <span>Ежемесячный платеж:</span>
+            <span class="calc-res-highlight" id="calc-res-payment">1 050 000 сум/мес</span>
+          </div>
+        </div>
+
+        <button class="btn-cta-full" id="calc-enroll-btn">
+          📝 Забронировать рассрочку
+        </button>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         TAB 4: RAG AI CHAT
+         ====================================================================== -->
+    <div id="tab-ai" class="tab-page">
+      <div class="chat-container">
+        <!-- Quick Question Chips -->
+        <div class="chat-chips-scroll">
+          <div class="chat-chip" data-q="Сколько стоят курсы и рассрочка?">💰 Цены и рассрочка</div>
+          <div class="chat-chip" data-q="Нужен ли свой ноутбук для занятий?">💻 Нужен ли ноутбук?</div>
+          <div class="chat-chip" data-q="Где находится кампус и коворкинг?">📍 Где кампус?</div>
+          <div class="chat-chip" data-q="Как проходит бесплатный пробный урок?">🎁 Пробный урок</div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chat-messages-box">
+          <div class="chat-bubble bubble-bot">
+            Здравствуйте! Я — интеллектуальный RAG ИИ-Консультант IT Academy. 🎓<br><br>
+            Я знаю всё о программах курсов, стоимости, преподавателях и 24/7 коворкинге. Задайте любой интересующий вас вопрос!
+          </div>
+        </div>
+
+        <!-- Input Bar -->
+        <div class="chat-input-bar">
+          <input type="text" id="chat-input" class="chat-input-field" placeholder="Спросить у ИИ-консультанта...">
+          <button id="chat-send-btn" class="chat-send-btn">➔</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         TAB 5: CAMPUS & CONTACTS
+         ====================================================================== -->
+    <div id="tab-campus" class="tab-page">
+      <div class="campus-card">
+        <div style="font-size: 0.74rem; font-weight: 700; color: var(--emerald); text-transform: uppercase; margin-bottom: 4px;">Ташкентский IT-Хаб</div>
+        <h2 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 8px;">Коворкинг 24/7 для студентов</h2>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.45;">
+          Каждый студент академии получает круглосуточный бесплатный доступ в технологичный кампус для учебы и работы.
+        </p>
+
+        <ul class="coworking-specs-list">
+          <li>🖥️ Моноблоки Apple iMac 27" и ПК Core i7 (32GB RAM)</li>
+          <li>⚡ Оптоволоконный интернет 1 Гбит/с без задержек</li>
+          <li>☕ Безлимитный зерновой кофе, чай и зоны отдыха</li>
+          <li>🎧 Тихие переговорные комнаты для звонков и зумов</li>
+          <li>🕒 Доступ 24/7 по студенческому QR-пропуску</li>
+        </ul>
+
+        <div style="padding-top: 12px; border-top: 1px solid var(--border-subtle);">
+          <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">📍 Локации кампусов:</div>
+          <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 6px;">
+            • <b>Главный кампус:</b> г. Ташкент, Мирзо-Улугбекский р-н (ориентир IT-Park / м. Буюк Ипак Йули)<br>
+            • <b>Филиал 2:</b> г. Ташкент, Чиланзарский р-н (м. Новза)
+          </p>
+          <div style="font-size: 0.8rem; font-weight: 700; margin-top: 8px;">📞 Горячая линия:</div>
+          <p style="font-size: 0.82rem; color: var(--emerald); font-weight: 700;">+998 (71) 200-88-00</p>
+        </div>
+
+        <a href="tel:+998712008800" class="btn-cta-full" style="text-decoration: none; margin-top: 14px;">
+          📞 Позвонить в приемную комиссию
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ======================================================================
+       MODAL BOTTOM SHEET: COURSE DETAILS & ENROLLMENT FORM
+       ====================================================================== -->
+  <div class="modal-sheet" id="course-modal-sheet">
+    <div class="modal-content-box">
+      <div class="sheet-handle"></div>
+      
+      <div id="modal-details-view">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+          <h2 style="font-size: 1.25rem; font-weight: 800;" id="modal-course-title">Название курса</h2>
+          <button id="modal-close-btn" style="background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">✕</button>
+        </div>
+
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px;" id="modal-course-duration">7 месяцев</div>
+
+        <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.45; margin-bottom: 14px;" id="modal-course-desc"></div>
+
+        <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--cyan); margin-bottom: 8px;">Стек технологий:</div>
+        <div id="modal-course-stack" class="course-stack-chips" style="margin-bottom: 16px;"></div>
+
+        <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--emerald); margin-bottom: 8px;">Программа по модулям:</div>
+        <div id="modal-course-syllabus" style="font-size: 0.8rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 7px; margin-bottom: 18px;"></div>
+
+        <button class="btn-cta-full" id="modal-open-enroll-btn">
+          🎁 Записаться на этот курс
+        </button>
+      </div>
+
+      <!-- Enrollment Form Inside Modal -->
+      <div id="modal-enroll-view" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h3 style="font-size: 1.15rem; font-weight: 800;">Запись на бесплатный урок</h3>
+          <button id="modal-back-btn" style="background: none; border: none; color: var(--text-muted); font-size: 0.85rem; cursor: pointer;">◀ Назад</button>
+        </div>
+
+        <form id="mini-app-enroll-form">
+          <div class="form-group">
+            <label class="form-label">Ваше Имя</label>
+            <input type="text" id="enroll-name-input" class="form-input" placeholder="Введите ваше имя" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Номер телефона</label>
+            <input type="tel" id="enroll-phone-input" class="form-input" placeholder="+998 XX XXX-XX-XX" value="+998 " required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Выбранный курс</label>
+            <select id="enroll-course-select" class="form-select">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+
+          <button type="submit" class="btn-cta-full">
+            🚀 Забронировать бесплатное место
+          </button>
+        </form>
+
+        <div id="enroll-success-notice" style="display: none; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--emerald); border-radius: var(--radius-md); padding: 14px; margin-top: 14px; font-size: 0.85rem; line-height: 1.45; text-align: center;">
+          🎉 <strong>Заявка успешно принята!</strong><br>
+          Координатор свяжется с вами в течение 15 минут.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       BOTTOM NAVIGATION BAR
+       ====================================================================== -->
+  <nav class="bottom-nav">
+    <button class="nav-tab-btn active" data-tab="tab-courses">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+      <span>Курсы</span>
+    </button>
+    <button class="nav-tab-btn" data-tab="tab-quiz">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      <span>Квиз</span>
+    </button>
+    <button class="nav-tab-btn" data-tab="tab-calc">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
+      <span>Калькулятор</span>
+    </button>
+    <button class="nav-tab-btn" data-tab="tab-ai">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+      <span>ИИ Чат</span>
+    </button>
+    <button class="nav-tab-btn" data-tab="tab-campus">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+      <span>Кампус</span>
+    </button>
+  </nav>
+
+  <!-- ======================================================================
+       APPLICATION LOGIC SCRIPT
+       ====================================================================== -->
+  <script>
+    // Инициализация Telegram WebApp
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      try {
+        tg.setHeaderColor('#08101d');
+        tg.setBackgroundColor('#08101d');
+      } catch (e) {}
+
+      // Подстановка имени пользователя Telegram
+      const user = tg.initDataUnsafe?.user;
+      if (user && user.first_name) {
+        document.getElementById('tg-user-name').innerText = user.first_name;
+        const nameInput = document.getElementById('enroll-name-input');
+        if (nameInput) nameInput.value = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+      }
+    }
+
+    // Тактильный отклик (Haptic Feedback)
+    function triggerHaptic(type = 'light') {
+      try {
+        if (tg && tg.HapticFeedback) {
+          if (type === 'success') tg.HapticFeedback.notificationOccurred('success');
+          else if (type === 'medium') tg.HapticFeedback.impactOccurred('medium');
+          else tg.HapticFeedback.impactOccurred('light');
+        }
+      } catch (e) {}
+    }
+
+    // БАЗА ЗНАНИЙ КУРСОВ
+    const COURSES = [
+      {
+        id: "frontend",
+        title: "Frontend Разработка (React & Next.js)",
+        duration: "7 месяцев",
+        price: 1800000,
+        priceFormatted: "1 800 000 сум/мес",
+        icon: "💻",
+        stack: ["React 19", "Next.js 15", "TypeScript", "Tailwind", "Vite", "Git"],
+        desc: "Веб-разработка с нуля до Junior+/Middle. 6 проектов в портфолио, диплом государственного образца, гарантированное собеседование.",
+        syllabus: [
+          "Модуль 1: Вёрстка (HTML5, современный CSS3, Flexbox, Grid, адаптивность)",
+          "Модуль 2: Программирование на JavaScript (ES6+, DOM, Fetch API)",
+          "Модуль 3: TypeScript и строгая типизация",
+          "Модуль 4: React.js (хуки, компонентный подход, роутинг)",
+          "Модуль 5: Next.js 15 (SSR, SSG, Server Actions)",
+          "Модуль 6: Дипломный веб-сервис и подготовка к собеседованию"
+        ]
+      },
+      {
+        id: "backend",
+        title: "Python & Backend (FastAPI, Django, AI)",
+        duration: "8 месяцев",
+        price: 1900000,
+        priceFormatted: "1 900 000 сум/мес",
+        icon: "🐍",
+        stack: ["Python 3.12", "FastAPI", "PostgreSQL", "Docker", "Redis", "Gemini API"],
+        desc: "Разработка высоконагруженных серверных систем, микросервисов, REST API, Telegram-ботов и интеграция LLM нейросетей.",
+        syllabus: [
+          "Модуль 1: Основы Python, алгоритмы, структуры данных, ООП",
+          "Модуль 2: Реляционные базы данных, SQL, PostgreSQL, индексы",
+          "Модуль 3: Разработка REST API на FastAPI и Django REST Framework",
+          "Модуль 4: Асинхронное программирование, Redis, очереди задач",
+          "Модуль 5: Docker, контейнеризация, микросервисы, CI/CD",
+          "Модуль 6: Дипломный бэкенд с интеграцией Gemini AI"
+        ]
+      },
+      {
+        id: "design",
+        title: "UI/UX & Product Design (Figma)",
+        duration: "5 месяцев",
+        price: 1700000,
+        priceFormatted: "1 700 000 сум/мес",
+        icon: "🎨",
+        stack: ["Figma", "Design Systems", "UX Research", "CJM", "Prototyping"],
+        desc: "Проектирование пользовательских интерфейсов для мобильных и веб-сервисов. 4 готовых кейса на Behance.",
+        syllabus: [
+          "Модуль 1: Композиция, колористика, типографика и сетки",
+          "Модуль 2: Инструменты Figma (Auto Layout, Variants, интерактивные прототипы)",
+          "Модуль 3: UX исследования, CustDev, CJM, User Flow",
+          "Модуль 4: Создание масштабируемой Design System",
+          "Модуль 5: Дизайн мобильного банка и презентация портфолио"
+        ]
+      },
+      {
+        id: "qa",
+        title: "QA Automation & Manual Testing",
+        duration: "4 месяца",
+        price: 1600000,
+        priceFormatted: "1 600 000 сум/мес",
+        icon: "🔍",
+        stack: ["Python", "Playwright", "Postman", "SQL", "Selenium", "Jira"],
+        desc: "Быстрый старт в IT: ручное и автоматизированное тестирование веб- и мобильных платформ.",
+        syllabus: [
+          "Модуль 1: Теория тестирования, тест-дизайн, баг-репорты в Jira",
+          "Модуль 2: Тестирование API (Postman, REST, JSON, статусы)",
+          "Модуль 3: Базы данных SQL для тестировщика",
+          "Модуль 4: Автоматизация автотестов на Python и Playwright"
+        ]
+      },
+      {
+        id: "ai",
+        title: "Data Science & Artificial Intelligence",
+        duration: "9 месяцев",
+        price: 2100000,
+        priceFormatted: "2 100 000 сум/мес",
+        icon: "🤖",
+        stack: ["PyTorch", "Python", "Pandas", "Scikit-learn", "LLM", "RAG"],
+        desc: "Машинное обучение, создание нейросетей, интеграция генеративного ИИ и разработка собственных RAG-систем.",
+        syllabus: [
+          "Модуль 1: Python для анализа данных (NumPy, Pandas)",
+          "Модуль 2: Статистика и теория вероятностей для ML",
+          "Модуль 3: Классическое машинное обучение (Scikit-learn)",
+          "Модуль 4: Глубокое обучение и нейросети на PyTorch",
+          "Модуль 5: LLM модели, Prompt Engineering, RAG архитектуры"
+        ]
+      },
+      {
+        id: "mobile",
+        title: "Mobile App Development (Flutter & Dart)",
+        duration: "6 месяцев",
+        price: 1850000,
+        priceFormatted: "1 850 000 сум/мес",
+        icon: "📱",
+        stack: ["Flutter SDK", "Dart", "BLoC", "Firebase", "REST API"],
+        desc: "Кроссплатформенная разработка приложений под iOS и Android на Flutter с публикацией в магазины.",
+        syllabus: [
+          "Модуль 1: Dart и объектно-ориентированное программирование",
+          "Модуль 2: Вёрстка экранов на Flutter, виджеты и анимации",
+          "Модуль 3: State Management (BLoC, Provider)",
+          "Модуль 4: Работа с API, Firebase, локальные базы данных",
+          "Модуль 5: Публикация приложений в Google Play и App Store"
+        ]
+      },
+      {
+        id: "devops",
+        title: "DevOps & Cloud Engineering",
+        duration: "6 месяцев",
+        price: 2000000,
+        priceFormatted: "2 000 000 сум/мес",
+        icon: "☁️",
+        stack: ["Linux", "Docker", "Kubernetes", "CI/CD", "AWS", "Grafana"],
+        desc: "Построение отказоустойчивой облачной инфраструктуры, автоматизация деплоя и мониторинг систем.",
+        syllabus: [
+          "Модуль 1: Администрирование Linux и Bash-скриптинг",
+          "Модуль 2: Контейнеризация с Docker и Docker Compose",
+          "Модуль 3: Оркестрация контейнеров в Kubernetes",
+          "Модуль 4: CI/CD пайплайны (GitHub Actions, GitLab CI)",
+          "Модуль 5: Мониторинг (Prometheus, Grafana) и облака AWS"
+        ]
+      },
+      {
+        id: "security",
+        title: "Cyber Security & Ethical Hacking",
+        duration: "6 месяцев",
+        price: 1950000,
+        priceFormatted: "1 950 000 сум/мес",
+        icon: "🛡️",
+        stack: ["Kali Linux", "Wireshark", "Metasploit", "OWASP", "Pentest"],
+        desc: "Защита цифровых систем, аудит уязвимостей веб-приложений и этичный хакинг по мировым стандартам.",
+        syllabus: [
+          "Модуль 1: Компьютерные сети, протоколы TCP/IP, криптография",
+          "Модуль 2: Инструменты анализа безопасности и Kali Linux",
+          "Модуль 3: Веб-уязвимости и OWASP Top 10",
+          "Модуль 4: Сетевая безопасность и тестирование на проникновение",
+          "Модуль 5: Расследование инцидентов и защита периметра"
+        ]
+      }
+    ];
+
+    // Навигация по табам
+    const navButtons = document.querySelectorAll('.nav-tab-btn');
+    const tabPages = document.querySelectorAll('.tab-page');
+
+    function switchTab(tabId) {
+      triggerHaptic('light');
+      navButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+      });
+      tabPages.forEach(page => {
+        page.classList.toggle('active', page.id === tabId);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    navButtons.forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+    });
+
+    // Рендер каталога курсов
+    const coursesContainer = document.getElementById('courses-list-container');
+    const calcSelect = document.getElementById('calc-course-select');
+    const enrollSelect = document.getElementById('enroll-course-select');
+
+    COURSES.forEach(course => {
+      // Карточка курса
+      const card = document.createElement('div');
+      card.className = 'course-card';
+      card.innerHTML = `
+        <div class="course-card-top">
+          <div class="course-icon-badge">${course.icon}</div>
+          <span class="course-duration-pill">⏱ ${course.duration}</span>
+        </div>
+        <h3 class="course-title">${course.title}</h3>
+        <p class="course-desc">${course.desc}</p>
+        <div class="course-stack-chips">
+          ${course.stack.map(s => `<span class="stack-chip">${s}</span>`).join('')}
+        </div>
+        <div class="course-bottom-row">
+          <div>
+            <div class="course-price-val">${course.priceFormatted}</div>
+            <div class="course-price-sub">Рассрочка от ${Math.round(course.price / 2).toLocaleString('ru-RU')} сум/мес</div>
+          </div>
+          <button class="btn-action-sm btn-view-syllabus" data-id="${course.id}">Программа ➔</button>
+        </div>
+      `;
+      coursesContainer.appendChild(card);
+
+      // Опции в селекты
+      calcSelect.innerHTML += `<option value="${course.id}">${course.title} (${course.priceFormatted})</option>`;
+      enrollSelect.innerHTML += `<option value="${course.id}">${course.title}</option>`;
+    });
+
+    // Модальное окно курса и программы
+    const modalSheet = document.getElementById('course-modal-sheet');
+    const modalTitle = document.getElementById('modal-course-title');
+    const modalDuration = document.getElementById('modal-course-duration');
+    const modalDesc = document.getElementById('modal-course-desc');
+    const modalStack = document.getElementById('modal-course-stack');
+    const modalSyllabus = document.getElementById('modal-course-syllabus');
+    const modalDetailsView = document.getElementById('modal-details-view');
+    const modalEnrollView = document.getElementById('modal-enroll-view');
+    let currentModalCourseId = 'frontend';
+
+    function openCourseModal(courseId) {
+      triggerHaptic('medium');
+      const course = COURSES.find(c => c.id === courseId) || COURSES[0];
+      currentModalCourseId = course.id;
+
+      modalTitle.innerText = course.title;
+      modalDuration.innerText = `Длительность: ${course.duration} • ${course.priceFormatted}`;
+      modalDesc.innerText = course.desc;
+      modalStack.innerHTML = course.stack.map(s => `<span class="stack-chip">${s}</span>`).join('');
+      modalSyllabus.innerHTML = course.syllabus.map(s => `<div>• ${s}</div>`).join('');
+
+      modalDetailsView.style.display = 'block';
+      modalEnrollView.style.display = 'none';
+      enrollSelect.value = course.id;
+
+      modalSheet.classList.add('open');
+    }
+
+    function closeModal() {
+      modalSheet.classList.remove('open');
+    }
+
+    document.querySelectorAll('.btn-view-syllabus').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.getAttribute('data-id');
+        openCourseModal(id);
+      });
+    });
+
+    document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+    modalSheet.addEventListener('click', (e) => {
+      if (e.target === modalSheet) closeModal();
+    });
+
+    document.getElementById('modal-open-enroll-btn').addEventListener('click', () => {
+      triggerHaptic('light');
+      modalDetailsView.style.display = 'none';
+      modalEnrollView.style.display = 'block';
+    });
+
+    document.getElementById('modal-back-btn').addEventListener('click', () => {
+      modalDetailsView.style.display = 'block';
+      modalEnrollView.style.display = 'none';
+    });
+
+    // Обработка формы записи (Mini App Enrollment)
+    const enrollForm = document.getElementById('mini-app-enroll-form');
+    const successNotice = document.getElementById('enroll-success-notice');
+    const phoneInput = document.getElementById('enroll-phone-input');
+
+    phoneInput.addEventListener('input', (e) => {
+      let val = e.target.value.replace(/\D/g, '');
+      if (!val.startsWith('998')) val = '998' + val;
+      val = val.substring(0, 12);
+
+      let formatted = '+998';
+      if (val.length > 3) formatted += ' (' + val.substring(3, 5);
+      if (val.length > 5) formatted += ') ' + val.substring(5, 8);
+      if (val.length > 8) formatted += '-' + val.substring(8, 10);
+      if (val.length > 10) formatted += '-' + val.substring(10, 12);
+      e.target.value = formatted;
+    });
+
+    enrollForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      triggerHaptic('success');
+
+      const name = document.getElementById('enroll-name-input').value.trim();
+      const phone = phoneInput.value.trim();
+      const courseObj = COURSES.find(c => c.id === enrollSelect.value);
+      const courseName = courseObj ? courseObj.title : enrollSelect.value;
+
+      const leadData = {
+        name: name,
+        phone: phone,
+        course: courseName,
+        source: 'telegram_mini_app'
+      };
+
+      // 1. Отправляем в бэкенд проекта
+      fetch('/api/enroll', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(leadData)
+      }).catch(err => console.warn('Fetch error:', err));
+
+      // 2. Если внутри Telegram, отправляем данные боту через WebApp SDK
+      try {
+        if (tg && typeof tg.sendData === 'function') {
+          tg.sendData(JSON.stringify(leadData));
+        }
+      } catch (err) {}
+
+      successNotice.style.display = 'block';
+      enrollForm.style.display = 'none';
+
+      setTimeout(() => {
+        closeModal();
+        enrollForm.reset();
+        enrollForm.style.display = 'block';
+        successNotice.style.display = 'none';
+      }, 3000);
+    });
+
+    // КАЛЬКУЛЯТОР РАССРОЧКИ
+    const schemeSelect = document.getElementById('calc-scheme-select');
+    const resDuration = document.getElementById('calc-res-duration');
+    const resFull = document.getElementById('calc-res-full');
+    const resDiscount = document.getElementById('calc-res-discount');
+    const resPayment = document.getElementById('calc-res-payment');
+
+    function updateCalculator() {
+      const course = COURSES.find(c => c.id === calcSelect.value) || COURSES[0];
+      const months = parseInt(course.duration, 10) || 6;
+      const fullTotal = course.price * months;
+      const scheme = schemeSelect.value;
+
+      resDuration.innerText = course.duration;
+      resFull.innerText = fullTotal.toLocaleString('ru-RU') + ' сум';
+
+      if (scheme === 'monthly') {
+        resDiscount.innerText = '0 сум';
+        resPayment.innerText = course.price.toLocaleString('ru-RU') + ' сум/мес';
+      } else if (scheme === 'full') {
+        const discountVal = Math.round(fullTotal * 0.15);
+        resDiscount.innerText = discountVal.toLocaleString('ru-RU') + ' сум (-15%)';
+        resPayment.innerText = (fullTotal - discountVal).toLocaleString('ru-RU') + ' сум (единовременно)';
+      } else if (scheme === '6') {
+        resDiscount.innerText = '0 сум (рассрочка 0%)';
+        resPayment.innerText = Math.round(fullTotal / 6).toLocaleString('ru-RU') + ' сум/мес';
+      } else if (scheme === '12') {
+        resDiscount.innerText = '0 сум (рассрочка 0%)';
+        resPayment.innerText = Math.round(fullTotal / 12).toLocaleString('ru-RU') + ' сум/мес';
+      }
+    }
+
+    calcSelect.addEventListener('change', updateCalculator);
+    schemeSelect.addEventListener('change', updateCalculator);
+    updateCalculator();
+
+    document.getElementById('calc-enroll-btn').addEventListener('click', () => {
+      openCourseModal(calcSelect.value);
+      modalDetailsView.style.display = 'none';
+      modalEnrollView.style.display = 'block';
+    });
+
+    // КВИЗ ПРОФОРИЕНТАЦИИ (3 ШАГА)
+    const quizSteps = [
+      {
+        label: "Шаг 1 из 3",
+        title: "Что вам ближе по духу и интересам?",
+        options: [
+          { text: "🎨 Создавать красивый визуал и интерфейсы", category: "design" },
+          { text: "💻 Писать логику сайтов и интерактивы", category: "front" },
+          { text: "⚙️ Сервера, базы данных и микросервисы", category: "back" },
+          { text: "🔍 Тестировать программы и искать баги", category: "qa" },
+          { text: "🤖 Обучать нейросети и анализировать данные", category: "ai" }
+        ]
+      },
+      {
+        label: "Шаг 2 из 3",
+        title: "Какой у вас опыт в программировании?",
+        options: [
+          { text: "🌱 Полный ноль, никогда не пробовал(а)" },
+          { text: "💻 Пробовал(а) бесплатные ролики / уроки" },
+          { text: "🚀 Есть технический бэкграунд / база" }
+        ]
+      },
+      {
+        label: "Шаг 3 из 3",
+        title: "Какая ваша главная цель обучения?",
+        options: [
+          { text: "🎯 Сменить профессию и получить оффер в IT" },
+          { text: "💡 Создать свой IT-стартап или продукт" },
+          { text: "🌍 Работать удаленно на зарубежные компании" }
+        ]
+      }
+    ];
+
+    let currentQuizStep = 0;
+    let chosenCategory = 'front';
+    const quizStepLabel = document.getElementById('quiz-step-label');
+    const quizQTitle = document.getElementById('quiz-question-title');
+    const quizOptionsWrapper = document.getElementById('quiz-options-wrapper');
+    const quizStepBox = document.getElementById('quiz-step-box');
+    const quizResultBox = document.getElementById('quiz-result-box');
+
+    function renderQuizStep() {
+      const stepData = quizSteps[currentQuizStep];
+      quizStepLabel.innerText = stepData.label;
+      quizQTitle.innerText = stepData.title;
+
+      document.querySelectorAll('.progress-step-pill').forEach((pill, idx) => {
+        pill.classList.toggle('active', idx <= currentQuizStep);
+      });
+
+      quizOptionsWrapper.innerHTML = '';
+      stepData.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-btn-option';
+        btn.innerText = opt.text;
+        btn.addEventListener('click', () => {
+          triggerHaptic('medium');
+          if (opt.category) chosenCategory = opt.category;
+
+          if (currentQuizStep < quizSteps.length - 1) {
+            currentQuizStep++;
+            renderQuizStep();
+          } else {
+            showQuizResult();
+          }
+        });
+        quizOptionsWrapper.appendChild(btn);
+      });
+    }
+
+    function showQuizResult() {
+      quizStepBox.style.display = 'none';
+      quizResultBox.style.display = 'block';
+
+      let recCourse = COURSES[0];
+      if (chosenCategory === 'design') recCourse = COURSES.find(c => c.id === 'design');
+      else if (chosenCategory === 'back') recCourse = COURSES.find(c => c.id === 'backend');
+      else if (chosenCategory === 'qa') recCourse = COURSES.find(c => c.id === 'qa');
+      else if (chosenCategory === 'ai') recCourse = COURSES.find(c => c.id === 'ai');
+
+      document.getElementById('quiz-res-icon').innerText = recCourse.icon;
+      document.getElementById('quiz-res-title').innerText = recCourse.title;
+      document.getElementById('quiz-res-desc').innerText = `Идеальное совпадение по вашим ответам! Длительность: ${recCourse.duration}. 70% практики, помощь в трудоустройстве и 24/7 коворкинг.`;
+
+      document.getElementById('quiz-cta-enroll-btn').onclick = () => {
+        openCourseModal(recCourse.id);
+        modalDetailsView.style.display = 'none';
+        modalEnrollView.style.display = 'block';
+      };
+    }
+
+    document.getElementById('quiz-restart-btn').addEventListener('click', () => {
+      currentQuizStep = 0;
+      quizStepBox.style.display = 'block';
+      quizResultBox.style.display = 'none';
+      renderQuizStep();
+    });
+
+    renderQuizStep();
+
+    // RAG ИИ ЧАТ
+    const chatInput = document.getElementById('chat-input');
+    const chatSendBtn = document.getElementById('chat-send-btn');
+    const chatMessagesBox = document.getElementById('chat-messages-box');
+
+    function appendChatMessage(text, role = 'bot') {
+      const bubble = document.createElement('div');
+      bubble.className = `chat-bubble ${role === 'user' ? 'bubble-user' : 'bubble-bot'}`;
+      bubble.innerHTML = text.replace(/\n/g, '<br>');
+      chatMessagesBox.appendChild(bubble);
+      chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
+    }
+
+    function processAiQuestion(query) {
+      if (!query || query.trim() === '') return;
+      appendChatMessage(query, 'user');
+      chatInput.value = '';
+      triggerHaptic('light');
+
+      const q = query.toLowerCase();
+      let answer = "";
+
+      if (q.includes("курс") || q.includes("frontend") || q.includes("python") || q.includes("дизайн") || q.includes("qa") || q.includes("data science")) {
+        answer = "🚀 <b>Каталог курсов IT Academy:</b><br>" +
+          "1. <b>Frontend:</b> 7 мес • 1 800 000 сум/мес<br>" +
+          "2. <b>Python & Backend:</b> 8 мес • 1 900 000 сум/мес<br>" +
+          "3. <b>UI/UX Design:</b> 5 мес • 1 700 000 сум/мес<br>" +
+          "4. <b>QA Testing:</b> 4 мес • 1 600 000 сум/мес<br>" +
+          "5. <b>Data Science & AI:</b> 9 мес • 2 100 000 сум/мес<br><br>" +
+          "<i>Все курсы включают 70% практики и безлимитный коворкинг 24/7!</i>";
+      } else if (q.includes("стоим") || q.includes("цен") || q.includes("рассрочк") || q.includes("оплат")) {
+        answer = "💳 <b>Оплата и рассрочка:</b><br>" +
+          "• Помесячная оплата без процентов<br>" +
+          "• <b>Скидка 15%</b> при оплате курса целиком<br>" +
+          "• Беспроцентная банковская рассрочка на 6–12 месяцев через партнеров (Anorbank, Uzum Nasiya, Payme).";
+      } else if (q.includes("ноутбук") || q.includes("компьютер") || q.includes("пк") || q.includes("imac")) {
+        answer = "💻 <b>Оборудование в классах:</b><br>" +
+          "В аудиториях установлены мощные моноблоки <b>Apple iMac</b> и ПК <b>Core i7 32GB RAM</b>. Для очных занятий ноутбук не нужен! Также доступен наш бесплатный 24/7 коворкинг.";
+      } else if (q.includes("где") || q.includes("адрес") || q.includes("кампус") || q.includes("филиал")) {
+        answer = "📍 <b>Наши кампусы в Ташкенте:</b><br>" +
+          "• <b>Главный кампус:</b> Мирзо-Улугбекский р-н (IT-Park / м. Буюк Ипак Йули)<br>" +
+          "• <b>Филиал 2:</b> Чиланзарский р-н (м. Новза)<br>" +
+          "📞 Телефон: +998 (71) 200-88-00 (Коворкинг для студентов 24/7).";
+      } else {
+        answer = "🤖 Я помогу вам выбрать IT-профессию, записаться на бесплатный вводный мастер-класс или рассчитать рассрочку. Нажмите на вкладку <b>«Курсы»</b> или задайте вопрос по стоимости!";
+      }
+
+      setTimeout(() => {
+        appendChatMessage(answer, 'bot');
+        triggerHaptic('medium');
+      }, 350);
+    }
+
+    chatSendBtn.addEventListener('click', () => processAiQuestion(chatInput.value));
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') processAiQuestion(chatInput.value);
+    });
+
+    document.querySelectorAll('.chat-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        processAiQuestion(chip.getAttribute('data-q'));
+      });
+    });
+  </script>
+</body>
+</html>
+
